@@ -1,5 +1,7 @@
 import { generateEmbeddings } from '../config/google-ai.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Message from '../models/Message.js'; 
+import Repository from '../models/Repository.js'; 
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENAI_API_KEY);
 
@@ -9,10 +11,24 @@ export const askQuestion = async (req, res) => {
     try {
         console.log(`🔍 Processing question for repo: ${repoUrl}`);
 
-        // 1. Question Embedding (3072 dimensions)
+        // 0. search repo from db
+        const repo = await Repository.findOne({ url: repoUrl });
+        if (!repo) {
+            return res.status(404).json({ success: false, message: "Repository not found in DB" });
+        }
+
+        // 1. fetch the history - last 6 msges
+        const historyDocs = await Message.find({ repository: repo._id })
+            .sort({ timestamp: -1 })
+            .limit(6);
+        
+        // History - Chronological order
+        const history = historyDocs.reverse().map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n");
+
+        // 2. Question Embedding (3072 dimensions)
         const queryVector = await generateEmbeddings(question);
 
-        // 2. Pinecone Semantic Search
+        // 3. Pinecone Semantic Search
         const queryResponse = await fetch(`${process.env.PINECONE_HOST}/query`, {
             method: 'POST',
             headers: {
@@ -28,25 +44,20 @@ export const askQuestion = async (req, res) => {
 
         const queryResult = await queryResponse.json();
         
-        if (!queryResult.matches || queryResult.matches.length === 0) {
-            return res.status(200).json({ 
-                success: true, 
-                answer: "Bhai, is codebase mein mujhe isse related kuch nahi mila. Kya aap kuch aur poochna chahenge?" 
-            });
-        }
+        const context = queryResult.matches?.length > 0 
+            ? queryResult.matches.map(match => `File: ${match.metadata.fileName}\nCode: ${match.metadata.text}`).join("\n\n---\n\n")
+            : "No specific code context found.";
 
-        // 3. Context 
-        const context = queryResult.matches
-            .map(match => `File: ${match.metadata.fileName}\nCode: ${match.metadata.text}`)
-            .join("\n\n---\n\n");
-
-        // 4. Gemini LLM Call
+        // 4. Gemini LLM Call with History
         const model = genAI.getGenerativeModel({ model: "models/gemini-2.5-flash" });
 
         const prompt = `
-            You are "DevOnboard AI", a world-class Software Engineer and Technical Architect.
-            Your goal is to help a developer understand this codebase using the provided snippets.
+            You are "DevOnboard AI", a world-class Software Engineer.
+            Use the Chat History and Code Context to answer the user's question.
 
+            ---
+            RECENT CHAT HISTORY:
+            ${history || "No previous conversation."}
             ---
             CODE CONTEXT FROM PINECOE:
             ${context}
@@ -56,11 +67,10 @@ export const askQuestion = async (req, res) => {
             ${question}
 
             INSTRUCTIONS:
-            1. ANALYZE: First, look at the file names and imports in the context to understand the project's architecture (e.g., Is it MVC? Is it a MERN stack?).
-            2. NO README CASE: If a README is not provided in the context, infer the project's purpose from 'package.json' dependencies or main entry points like 'index.js' or 'app.js'.
-            3. ACCURACY: Answer ONLY based on the provided context. If the information is missing, say: "Bhai, is specific part ka code mere paas abhi nahi hai. Kya aap kisi aur file ya logic ke baare mein poochna chahenge?"
-            4. STYLE: Keep the tone professional yet helpful. Use Markdown for code blocks.
-            5. EXPLAIN 'WHY': Don't just say what the code does; explain WHY it is written that way if the context allows.
+            1. Use the history to understand what the user is referring to (like "this file" or "that function").
+            2. If README is missing, infer purpose from package.json or main entry points.
+            3. Answer ONLY based on context. If unknown, say: "Bhai, iska data mere paas nahi hai."
+            4. Keep it professional but helpful. Use Markdown.
 
             Final Answer:
         `;
@@ -68,11 +78,30 @@ export const askQuestion = async (req, res) => {
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
 
-        console.log("✅ Chat Response Generated!");
+        // 5. SAVE TO DB 
+        await Message.create([
+            { repository: repo._id, role: 'user', content: question },
+            { repository: repo._id, role: 'assistant', content: responseText }
+        ]);
+
+        console.log("✅ Chat Response Generated and Saved!");
         res.status(200).json({ success: true, answer: responseText });
 
     } catch (error) {
         console.error("❌ Chat Error:", error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+export const getChatHistory = async (req, res) => {
+    const { repoUrl } = req.query;
+    try {
+        const repo = await Repository.findOne({ url: repoUrl });
+        if (!repo) return res.status(404).json({ success: false, message: "Repo not found" });
+
+        const messages = await Message.find({ repository: repo._id }).sort({ timestamp: 1 });
+        res.status(200).json({ success: true, messages });
+    } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 };

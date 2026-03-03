@@ -1,7 +1,7 @@
 import express from 'express';
 import { cloneRepo, cleanupRepo } from '../lib/git-manager.js';
 import { indexRepository } from '../controllers/repoController.js';
-import { askQuestion } from '../controllers/chatController.js';
+import { askQuestion ,getChatHistory} from '../controllers/chatController.js';
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -35,5 +35,6 @@ router.post('/test-clone', async (req, res) => {
 
 router.post('/index-repo', indexRepository);
 router.post('/ask', askQuestion);
+router.get('/history', getChatHistory);
 
 export default router;
