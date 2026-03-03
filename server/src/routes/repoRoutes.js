@@ -1,5 +1,6 @@
 import express from 'express';
 import { cloneRepo, cleanupRepo } from '../lib/git-manager.js';
+import { indexRepository } from '../controllers/repoController.js';
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -30,5 +31,7 @@ router.post('/test-clone', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.post('/index-repo', indexRepository);
 
 export default router;
