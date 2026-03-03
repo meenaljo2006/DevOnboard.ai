@@ -1,36 +1,52 @@
 import 'dotenv/config';
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENAI_API_KEY);
 
 async function listModels() {
-    try {
-        console.log("🔍 Fetching available models for your API key...");
-        
-        // Google SDK ka inbuilt method available models list karne ke liye
-        // Hum fetch API use karenge kyunki SDK kabhi-kabhi limited list deta hai
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GOOGLE_GENAI_API_KEY}`);
-        const data = await response.json();
+  try {
+    const apiKey = process.env.GOOGLE_GENAI_API_KEY;
 
-        if (data.error) {
-            console.error("❌ API Error:", data.error.message);
-            return;
-        }
-
-        console.log("\n✅ Available Models:");
-        const embeddingModels = data.models.filter(m => m.supportedGenerationMethods.includes('embedContent'));
-        
-        if (embeddingModels.length === 0) {
-            console.log("⚠️ No embedding models found for this key!");
-        } else {
-            embeddingModels.forEach(m => {
-                console.log(`- ${m.name} (Short name: ${m.name.split('/').pop()})`);
-            });
-        }
-
-    } catch (error) {
-        console.error("❌ Connection Error:", error.message);
+    if (!apiKey) {
+      throw new Error("Missing GOOGLE_GENAI_API_KEY in .env file");
     }
+
+    console.log("🔍 Fetching available models for your API key...\n");
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error("❌ API Error:", data.error.message);
+      return;
+    }
+
+    if (!data.models || data.models.length === 0) {
+      console.log("⚠️ No models found for this key.");
+      return;
+    }
+
+    const embeddingModels = data.models.filter(m =>
+      m.supportedGenerationMethods.includes("embedContent")
+    );
+
+    const generationModels = data.models.filter(m =>
+      m.supportedGenerationMethods.includes("generateContent")
+    );
+
+    console.log("✅ Generation Models:");
+    generationModels.forEach(m => {
+      console.log(`- ${m.name}`);
+    });
+
+    console.log("\n✅ Embedding Models:");
+    embeddingModels.forEach(m => {
+      console.log(`- ${m.name}`);
+    });
+
+  } catch (error) {
+    console.error("❌ Connection Error:", error.message);
+  }
 }
 
 listModels();
