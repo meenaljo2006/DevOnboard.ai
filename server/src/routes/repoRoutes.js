@@ -2,6 +2,7 @@ import express from 'express';
 import { cloneRepo, cleanupRepo } from '../lib/git-manager.js';
 import { indexRepository } from '../controllers/repoController.js';
 import { askQuestion ,getChatHistory} from '../controllers/chatController.js';
+import Repository from '../models/Repository.js';
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -31,6 +32,20 @@ router.post('/test-clone', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// server/src/routes/repoRoutes.js
+router.get('/all', async (req, res) => {
+    try {
+        const repos = await Repository.find({ indexingStatus: 'Ready' }); 
+        
+        res.status(200).json({ 
+            success: true, 
+            repos 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 router.post('/index-repo', indexRepository);
