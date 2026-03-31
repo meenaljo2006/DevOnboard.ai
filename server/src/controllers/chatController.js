@@ -40,7 +40,10 @@ export const askQuestion = async (req, res) => {
             body: JSON.stringify({
                 vector: queryVector,
                 topK: 5,
-                includeMetadata: true
+                includeMetadata: true,
+                filter: {
+                    repoUrl: { "$eq": repoUrl } 
+                }
             })
         });
 

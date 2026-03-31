@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef,useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -6,6 +6,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 const ChatWindow = ({ messages }) => {
 
   const messagesEndRef = useRef(null);
+  const [displayedText, setDisplayedText] = useState({});
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -13,6 +14,21 @@ const ChatWindow = ({ messages }) => {
 
   useEffect(() => {
     scrollToBottom();
+    // Check if the last message is from assistant for typewriter effect
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.role === 'assistant' && !displayedText[messages.length - 1]) {
+      let i = 0;
+      const fullText = lastMsg.content;
+      const timer = setInterval(() => {
+        setDisplayedText(prev => ({
+          ...prev,
+          [messages.length - 1]: fullText.slice(0, i + 1)
+        }));
+        i++;
+        if (i >= fullText.length) clearInterval(timer);
+      }, 10); // Typing speed
+      return () => clearInterval(timer);
+    }
   }, [messages]);
 
   return (
