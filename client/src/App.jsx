@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
-import { Send, Loader2, Database } from 'lucide-react';
+import { Send, Loader2, Database,Bot,Brain } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -154,7 +154,7 @@ function App() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
             <div className="w-24 h-24 bg-indigo-100 rounded-3xl flex items-center justify-center mb-8 border border-indigo-200 shadow-lg">
-              <Database size={44} className="text-indigo-600" />
+              <Brain size={55} className="text-indigo-600" />
             </div>
             <h2 className="text-3xl font-black mb-3 tracking-tight">DevOnboard.ai</h2>
             <p className="text-slate-500 max-w-xs text-sm leading-relaxed">

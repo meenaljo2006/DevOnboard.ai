@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Github, Database, Loader2, Plus } from 'lucide-react';
+import { Github, Database, Loader2, Plus,Brain,Bot } from 'lucide-react';
 import axios from 'axios';
 
 const Sidebar = ({ onIndexSuccess, onSelectRepo, indexedRepos, activeRepo }) => {
@@ -31,7 +31,7 @@ const Sidebar = ({ onIndexSuccess, onSelectRepo, indexedRepos, activeRepo }) => 
       <div className="p-6">
         <h1 className="text-xl font-black text-slate-900 flex items-center gap-2 mb-8">
           <div className="bg-indigo-600 p-1.5 rounded-lg text-white">
-            <Database size={20}/>
+            <Bot size={20}/>
           </div>
           DevOnboard.ai
         </h1>
