@@ -127,16 +127,7 @@ function App() {
             </header>
             
             <ChatWindow messages={messages} loading={loading} activeRepo={activeRepo}/>
-            {/* 🟢 TYPING INDICATOR: Loading ke waqt ye dikhega */}
-            {loading && (
-              <div className="px-6 py-2">
-                <div className="flex items-center gap-2 text-indigo-500 text-xs font-medium animate-pulse">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  DevOnboard is thinking...
-                </div>
-              </div>
-            )}
-
+            
             <div className="p-4 bg-white border-t border-slate-200">
               <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto relative flex items-center gap-3">
                 <input
