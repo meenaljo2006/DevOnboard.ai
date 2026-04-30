@@ -5,10 +5,10 @@ const repositorySchema = new mongoose.Schema({
   name: { type: String, required: true },
   indexingStatus: { 
     type: String, 
-    enum: ['Queued', 'Indexing', 'Ready', 'Failed'], 
     default: 'Queued' 
   },
-  vectorNamespace: { type: String }, // Used to isolate this repo in Pinecone
+  structure: { type: Array, default: [] }, 
+  vectorNamespace: { type: String }, 
   lastIndexed: { type: Date, default: Date.now },
   fileCount: { type: Number, default: 0 }
 }, { timestamps: true });

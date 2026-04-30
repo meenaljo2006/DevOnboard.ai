@@ -61,6 +61,21 @@ export const askQuestion = async (req, res) => {
             ? queryResult.matches.map(match => `FILE: ${match.metadata.fileName} (${match.metadata.snippet})\nCONTENT: ${match.metadata.text}`).join("\n\n---\n\n")
             : "No specific code context found in the vector database.";
 
+        let auditMode = "";
+        let currentFileContext = "";
+
+        if (activeFile) {
+            currentFileContext = `\nCRITICAL: The developer is currently viewing this file:\nFILE PATH: ${activeFile.path}\nFULL CONTENT:\n${activeFile.content}\n`;
+        }
+
+        if (question.toLowerCase().includes("refactor")) {
+            auditMode = "TASK: REFACTORING ENGINE. Rewrite the provided code to be more efficient, readable, and modern (ES6+). Explain the 'Why' behind each change.";
+        } else if (question.toLowerCase().includes("security scan")) {
+            auditMode = "URGENT: SECURITY AUDIT. Identify secrets, vulnerabilities, or insecure patterns.";
+        } else if (question.toLowerCase().includes("readme")) {
+            auditMode = "TASK: Generate a professional README.md.";
+        }
+
         // 4. Gemini 2.5 Flash Call with Augmented Prompting
         const model = genAI.getGenerativeModel({ model: "models/gemini-2.5-flash" });
 
@@ -68,6 +83,9 @@ export const askQuestion = async (req, res) => {
         const prompt = `
             ROLE: You are "DevOnboard AI", a world-class Senior Software Architect. 
             Your task is to help a developer understand this codebase using the provided context and history.
+
+            ${auditMode ? `SPECIAL INSTRUCTION: ${auditMode}` : ""}
+            ${currentFileContext}
 
             ---
             RECENT CHAT HISTORY:
