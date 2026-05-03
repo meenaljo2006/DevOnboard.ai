@@ -8,6 +8,7 @@ import morgan from 'morgan';
 // 2. IMPORT DB CONFIG & ROUTES
 import connectDB from './config/mongodb.js';
 import repoRoutes from './routes/repoRoutes.js';
+import router from './routes/auth.js';
 
 // 3. INITIALIZE DB CONNECTION
 connectDB();
@@ -22,6 +23,7 @@ app.use(express.json()); // Essential for parsing repo URLs in POST requests
 
 // 5. MOUNT ROUTES
 app.use('/api/repo', repoRoutes);
+app.use('/api/auth', router);
 
 // 6. START SERVER
 const PORT = process.env.PORT || 5000;

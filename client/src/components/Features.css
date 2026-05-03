@@ -1,0 +1,58 @@
+/* Features.css */
+.feature-card-wrapper {
+  --edge-proximity: 0;
+  --cursor-angle: 45deg;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  position: relative;
+  border-radius: 2.5rem;
+  isolation: isolate;
+  background: #020617; /* Deep Navy to match your video */
+  overflow: visible;
+  transition: transform 0.3s ease;
+}
+
+.feature-card-wrapper:hover {
+  transform: translateY(-5px);
+}
+
+/* Border Glow Logic (Mesh Gradient) */
+.feature-card-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  opacity: var(--edge-proximity);
+  transition: opacity 0.5s ease;
+  z-index: 2;
+}
+
+/* Spotlight Effect Logic */
+.feature-card-inner {
+  position: relative;
+  padding: 2.5rem;
+  border-radius: inherit;
+  background: #020617;
+  overflow: hidden;
+  height: 100%;
+  z-index: 1;
+}
+
+.feature-card-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--mouse-x) var(--mouse-y), 
+    var(--spotlight-color, rgba(99, 102, 241, 0.15)), 
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.feature-card-wrapper:hover .feature-card-inner::before {
+  opacity: 1;
+}
