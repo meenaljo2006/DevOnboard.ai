@@ -1,86 +1,63 @@
 import express from 'express';
-import { cloneRepo, cleanupRepo } from '../lib/git-manager.js';
-import { indexRepository } from '../controllers/repoController.js';
-import { askQuestion ,getChatHistory} from '../controllers/chatController.js';
+import auth from '../middleware/auth.js'; 
 import Repository from '../models/Repository.js';
-import fs from 'fs-extra';
-import path from 'path';
+import axios from 'axios';
+import { indexRepository } from '../controllers/repoController.js'; 
+import { askQuestion, getChatHistory } from '../controllers/chatController.js';
 
 const router = express.Router();
 
-router.post('/test-clone', async (req, res) => {
-  const { repoUrl } = req.body;
-
-  if (!repoUrl) return res.status(400).json({ error: "URL is required" });
-
-  try {
-    console.log(`Testing clone for: ${repoUrl}`);
-    const { targetPath, repoId } = await cloneRepo(repoUrl);
-    
-    // Read files to verify success
-    const files = await fs.readdir(targetPath, { recursive: true });
-    const count = files.length;
-
-    // Cleanup immediately since this is just a test
-    await cleanupRepo(targetPath);
-
-    res.json({ 
-      success: true, 
-      message: `Successfully cloned and found ${count} files/folders.`,
-      repoId 
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// server/src/routes/repoRoutes.js
-router.get('/all', async (req, res) => {
+// ROUTE 1: POLL STATUS
+router.get('/all-status', auth, async (req, res) => {
     try {
-        const repos = await Repository.find({ indexingStatus: 'Ready' }); 
-        
-        res.status(200).json({ 
-            success: true, 
-            repos 
-        });
+        const repos = await Repository.find({ userId: req.user.id }, 'url name indexingStatus');
+        res.json({ success: true, repos });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// routes/repoRoutes.js mein add karo
-router.get('/all-status', async (req, res) => {
-    const repos = await Repository.find({}, 'url name indexingStatus');
-    res.json({ success: true, repos });
-});
-
-router.get('/file-content', async (req, res) => {
+// ROUTE 2: FETCH REAL FILE CONTENT DIRECTLY FROM GITHUB
+router.get('/file-content', auth, async (req, res) => {
     const { repoUrl, filePath } = req.query;
-
     try {
-        // 1. Repo dhoondo (Humne repoId store nahi kiya tha, toh folder name nikalna hoga)
-        const repo = await Repository.findOne({ url: repoUrl });
+        const repo = await Repository.findOne({ url: repoUrl, userId: req.user.id });
         if (!repo) return res.status(404).json({ success: false, message: "Repo not found" });
-
-        // 2. Temp folders scan karo us repoId ke liye
-        // Filhal ke liye simple logic: temp folder ke andar repo name se folder search karein
-        const tempBase = path.join(process.cwd(), 'temp');
-        const folders = await fs.readdir(tempBase);
+        const cleanRepoUrl = repoUrl.replace(/\.git$/, '');
+        const rawBaseUrl = cleanRepoUrl.replace('github.com', 'raw.githubusercontent.com');
         
-        // folder dhoondo (yahan nanoid wala logic tha, isliye humein save karna chahiye tha)
-        // Temporary fix: Last created folder uthao ya repository model mein repoId save karo
-        // Let's assume folder structure path exists for demo:
-        const fullPath = path.join(tempBase, folders[folders.length - 1], filePath);
+        let contentUrl = `${rawBaseUrl}/master/${filePath}`;
+        
+        try {
+            const response = await axios.get(contentUrl);
+            return res.json({ success: true, content: response.data });
+        } catch (masterErr) {
+            contentUrl = `${rawBaseUrl}/main/${filePath}`;
+            const responseMain = await axios.get(contentUrl);
+            return res.json({ success: true, content: responseMain.data });
+        }
 
-        const content = await fs.readFile(fullPath, 'utf-8');
-        res.status(200).json({ success: true, content });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error("File fetch error:", error.message);
+        res.status(500).json({ success: false, error: "File content fetch failed. Branch might not be main/master." });
     }
 });
 
-router.post('/index-repo', indexRepository);
-router.post('/ask', askQuestion);
-router.get('/history', getChatHistory);
+// ROUTE 3: INDEX REPO (Calls your Pinecone/AI logic from Step 1)
+router.post('/index-repo', auth, indexRepository);
+
+// ROUTE 4: GET ALL REPOS FOR SIDEBAR
+router.get('/all', auth, async (req, res) => {
+    try {
+        const repos = await Repository.find({ userId: req.user.id }).sort({ _id: -1 });
+        res.json({ success: true, repos });
+    } catch (err) {
+        res.status(500).send("Server Error");
+    }
+});
+
+// ROUTE 5: CHAT ROUTES
+router.post('/ask', auth, askQuestion);
+router.get('/history', auth, getChatHistory);
 
 export default router;

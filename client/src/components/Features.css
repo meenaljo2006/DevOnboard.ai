@@ -1,4 +1,3 @@
-/* Features.css */
 .feature-card-wrapper {
   --edge-proximity: 0;
   --cursor-angle: 45deg;
@@ -7,7 +6,7 @@
   position: relative;
   border-radius: 2.5rem;
   isolation: isolate;
-  background: #020617; /* Deep Navy to match your video */
+  background: #020617; 
   overflow: visible;
   transition: transform 0.3s ease;
 }
@@ -16,7 +15,6 @@
   transform: translateY(-5px);
 }
 
-/* Border Glow Logic (Mesh Gradient) */
 .feature-card-wrapper::before {
   content: "";
   position: absolute;
@@ -28,7 +26,6 @@
   z-index: 2;
 }
 
-/* Spotlight Effect Logic */
 .feature-card-inner {
   position: relative;
   padding: 2.5rem;

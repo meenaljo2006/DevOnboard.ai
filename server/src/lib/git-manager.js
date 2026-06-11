@@ -9,19 +9,19 @@ export const cloneRepo = async (repoUrl) => {
     const repoId = nanoid(10);
     const targetPath = path.join(process.cwd(), 'temp', repoId);
     
-    // 1. Ensure temp directory exists (Varna error aa sakta hai)
+    // Ensure temp directory exists
     await fs.ensureDir(path.join(process.cwd(), 'temp'));
     
     try {
         console.log(`📂 Cloning started: ${repoUrl}`);
         
-        // 2. Depth 1 use karein for lightning fast speed
+        // Depth 1 use karein for lightning fast speed
         await git.clone(repoUrl, targetPath, ['--depth', '1']); 
         
-        console.log(`✅ Clone finished at: ${targetPath}`);
+        console.log(`Clone finished at: ${targetPath}`);
         return { targetPath, repoId };
     } catch (error) {
-        console.error(`❌ Git Error: ${error.message}`);
+        console.error(`Git Error: ${error.message}`);
         throw new Error(`Failed to clone repository: ${error.message}`);
     }
 };
@@ -29,8 +29,8 @@ export const cloneRepo = async (repoUrl) => {
 export const cleanupRepo = async (directoryPath) => {
     try {
         await fs.remove(directoryPath);
-        console.log(`🧹 Cleaned up temp files at: ${directoryPath}`);
+        console.log(`Cleaned up temp files at: ${directoryPath}`);
     } catch (error) {
-        console.error(`❌ Cleanup Error: ${error.message}`);
+        console.error(`Cleanup Error: ${error.message}`);
     }
 };

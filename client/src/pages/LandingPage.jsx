@@ -40,15 +40,15 @@ const LandingPage = () => {
   const [frequency, setFrequency] = useState('monthly');
   const { scrollY } = useScroll();
 
-  const [authMode, setAuthMode] = useState(null); // 'login', 'signup', ya null
+  const [authMode, setAuthMode] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const videoBlur = useTransform(scrollY, [0, 300], ["blur(0px)", "blur(12px)"]);
-  const videoOpacity = useTransform(scrollY, [0, 400], [0.6, 0.3]); // Video scroll par thodi dark hogi
-  const contentY = useTransform(scrollY, [0, 400], [150, 0]); // Text niche se upar aayega
-  const contentOpacity = useTransform(scrollY, [0, 300], [0, 1]); // Shuru mein text hidden rahega
+  const videoOpacity = useTransform(scrollY, [0, 400], [0.6, 0.3]); 
+  const contentY = useTransform(scrollY, [0, 400], [150, 0]); 
+  const contentOpacity = useTransform(scrollY, [0, 300], [0, 1]); 
 
   useEffect(() => {
     if (videoRef.current) {
@@ -64,16 +64,9 @@ const LandingPage = () => {
     const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/signup';
     
     try {
-      // Axios request to your backend (port 5000)
       const res = await axios.post(`http://localhost:5000${endpoint}`, formData);
-      
-      // Token save karo
       localStorage.setItem('token', res.data.token);
-      
-      // Modal band karo
       setAuthMode(null);
-      
-      // Dashboard par bhejo
       window.location.href = '/dashboard';
     } catch (err) {
       setError(err.response?.data?.msg || 'Something went wrong. Try again.');
@@ -94,13 +87,11 @@ const LandingPage = () => {
         >
           <source src="/video.mp4" type="video/mp4" />
         </motion.video>
-        
-        {/* Cinematic Overlays */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020617_90%)]"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/40 via-transparent to-[#020617]"></div>
       </div>
 
-      {/* 🟢 2. NAVBAR (Updated with more sections) */}
+      {/*NAVBAR*/}
       <nav className="fixed top-3 left-0 right-0 z-50 flex justify-between items-center px-10 py-2 max-w-7xl mx-auto backdrop-blur-md bg-white/5 border-b border-white/10 mt-2 rounded-2xl">
         <div className="flex items-center gap-2 font-bold text-2xl text-white">
           <div className="p-2">
@@ -109,7 +100,6 @@ const LandingPage = () => {
           <span className="tracking-tighter text-blue-200">DevOnboard<span className="text-amber-50">.ai</span></span>
         </div>
 
-        {/* Professional Navigation Links */}
         <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
           <a href="#features" className="hover:text-white transition-all flex items-center gap-2"><Code size={14}/> Explore</a>
           <a href="#docs" className="hover:text-white transition-all flex items-center gap-2"><Book size={14}/> Docs</a>
@@ -132,7 +122,6 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* 🟢 3. INITIAL VIEW (Empty space so video is visible first) */}
       <section className="relative z-10 h-screen flex items-end justify-center pb-20 pointer-events-none">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -147,7 +136,6 @@ const LandingPage = () => {
         </motion.div>
       </section>
 
-      {/* 🟢 4. REVEALED CONTENT (Appears on Scroll) */}
       <main className="relative z-10 flex flex-col items-center justify-center text-center pt-10 px-6 min-h-screen">
         <motion.div
           style={{ y: contentY, opacity: contentOpacity }}
@@ -201,7 +189,7 @@ const LandingPage = () => {
             </a>
           </div>
 
-          {/* 🟢 ENHANCED FEATURES SECTION */}
+          {/* FEATURES SECTION */}
         <section id="features" className="relative z-10 py-32 px-6 max-w-6xl mx-auto">
           <div className="text-center mb-10">
 
@@ -252,13 +240,11 @@ const LandingPage = () => {
         </section>
 
 
-{/* 🟢 2. PRICING SECTION (Fixed Version) */}
+      {/*PRICING SECTION*/}
       <section className="relative z-10 py-32 px-6 max-w-7xl mx-auto text-center text-white">
         <div className="mb-16">
 
           <h2 className="text-5xl md:text-6xl font-black mb-6 tracking-tighter">Choose Your Plan</h2>
-          
-          {/* Custom Tabs Switcher (No shadcn needed) */}
           <div className="flex bg-white/5 p-1 rounded-2xl w-fit mx-auto border border-white/10 backdrop-blur-md">
             <button 
               onClick={() => setFrequency('monthly')}
@@ -325,8 +311,6 @@ const LandingPage = () => {
         </motion.div>
       </main>
 
-
-      {/* 🟢 NEW: AUTHENTICATION MODAL */}
       <AnimatePresence>
         {authMode && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
@@ -335,11 +319,10 @@ const LandingPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setAuthMode(null)} // Click outside to close
+              onClick={() => setAuthMode(null)} 
               className="absolute inset-0 bg-[#020617]/80 backdrop-blur-md"
             />
 
-            {/* Modal Box */}
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -415,7 +398,7 @@ const LandingPage = () => {
                   type="button"
                   onClick={() => {
                     setAuthMode(authMode === 'login' ? 'signup' : 'login');
-                    setError(''); // Clear error on switch
+                    setError(''); 
                   }}
                   className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors"
                 >

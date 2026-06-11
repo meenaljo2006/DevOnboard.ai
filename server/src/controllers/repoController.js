@@ -27,15 +27,22 @@ const generateTree = async (dirPath, relativePath = "") => {
 
 export const indexRepository = async (req, res) => {
     const { repoUrl } = req.body;
+    const userId = req.user.id; 
+
     try {
-        // Step 1: Initialize
+        let existingRepo = await Repository.findOne({ url: repoUrl, userId: userId });
+        if (existingRepo && existingRepo.indexingStatus === 'Ready') {
+            return res.status(200).json({ success: true, alreadyExists: true, msg: "Repo already indexed." });
+        }
+
+        // Step 1: Initialize (Save userId also)
         let repo = await Repository.findOneAndUpdate(
-            { url: repoUrl },
-            { name: repoUrl.split('/').pop(), indexingStatus: 'Cloning Repository...' },
+            { url: repoUrl, userId: userId }, // Multi-user
+            { name: repoUrl.split('/').pop(), indexingStatus: 'Cloning Repository...', userId: userId },
             { upsert: true, returnDocument: 'after' }
         );
 
-        // Instant response taaki UI block na ho
+        // Instant response 
         res.status(202).json({ success: true, message: "Indexing started..." });
 
         // Step 2: Clone
@@ -55,7 +62,6 @@ export const indexRepository = async (req, res) => {
         const vectors = [];
         for (let i = 0; i < chunks.length; i++) {
             const progress = Math.round(((i + 1) / chunks.length) * 100);
-            // Har 10% par status update karein DB mein
             if (progress % 10 === 0) {
                 repo.indexingStatus = `Generating Vectors (${progress}%)...`;
                 await repo.save();
@@ -80,7 +86,7 @@ export const indexRepository = async (req, res) => {
             } catch (e) { continue; }
         }
 
-        // Step 6: Upsert
+        // Step 6: Upsert to Pinecone
         repo.indexingStatus = 'Finalizing with Pinecone...';
         await repo.save();
 
@@ -97,10 +103,10 @@ export const indexRepository = async (req, res) => {
         repo.structure = repoStructure;
         repo.fileCount = chunks.length;
         await repo.save();
-        // await cleanupRepo(targetPath);
+        await cleanupRepo(targetPath); 
 
     } catch (error) {
         console.error("Indexing Error:", error.message);
-        await Repository.findOneAndUpdate({ url: repoUrl }, { indexingStatus: 'Failed' });
+        await Repository.findOneAndUpdate( { url: repoUrl, userId: req.user.id }, { indexingStatus: 'Failed' });
     }
 };

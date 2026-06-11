@@ -5,7 +5,7 @@ const Typewriter = ({ text, speed = 20 }) => {
 
   useEffect(() => {
     let i = 0;
-    setDisplayedText(""); // Reset text on new response
+    setDisplayedText(""); 
     const timer = setInterval(() => {
       setDisplayedText((prev) => prev + text.charAt(i));
       i++;

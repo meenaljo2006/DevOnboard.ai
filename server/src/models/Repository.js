@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const repositorySchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
   url: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   indexingStatus: { 

@@ -1,8 +1,6 @@
-// src/components/Explorer/FileTree.jsx
 import React, { useState } from 'react';
 import { Folder, FileCode, ChevronDown, ChevronRight, Hash, FileJson, Layout } from 'lucide-react';
 
-// 🟢 Helper: Dark mode ke liye vibrant icons
 const getFileIcon = (fileName) => {
   if (fileName.endsWith('.js') || fileName.endsWith('.jsx')) return <FileCode size={16} className="text-yellow-400" />;
   if (fileName.endsWith('.css')) return <Hash size={16} className="text-cyan-400" />;
@@ -27,7 +25,6 @@ const FileTreeItem = ({ item, onFileSelect }) => {
           <span className="text-sm font-medium text-slate-300">{item.name}</span>
         </div>
         
-        {/* Child Items with a subtle left border line */}
         {isOpen && item.children && (
           <div className="ml-4 pl-2 border-l border-white/10 mt-1">
             {item.children.map((child, index) => (

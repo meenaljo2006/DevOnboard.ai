@@ -1,4 +1,3 @@
-// src/components/ChatWindow.jsx
 import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -74,7 +73,6 @@ const ChatWindow = ({ messages, loading }) => {
         </div>
       )}
 
-      {/* 🟢 Dark Theme Thinking Bubble */}
       {loading && (
         <div className="flex justify-start animate-in fade-in slide-in-from-left-2 duration-300">
           <div className="bg-white/5 border border-white/10 p-5 rounded-3xl rounded-tl-sm shadow-md flex gap-2 items-center backdrop-blur-md">

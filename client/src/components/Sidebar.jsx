@@ -1,6 +1,5 @@
-// src/components/Sidebar.jsx
 import { useState, useEffect } from 'react';
-import { Github, Loader2, Plus, Bot, CheckCircle2, AlertCircle, LogOut, User as UserIcon ,Brain} from 'lucide-react';
+import { Github, Loader2, Plus, Bot, CheckCircle2, AlertCircle, LogOut, Brain } from 'lucide-react';
 import axios from 'axios';
 
 const Sidebar = ({ onIndexSuccess, onSelectRepo, indexedRepos, activeRepo, user, onLogout }) => {
@@ -8,10 +7,18 @@ const Sidebar = ({ onIndexSuccess, onSelectRepo, indexedRepos, activeRepo, user,
   const [localRepos, setLocalRepos] = useState([]);
   const [isInputLoading, setIsInputLoading] = useState(false);
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { headers: { 'x-auth-token': token } } : null;
+  };
+
   useEffect(() => {
     const fetchStatuses = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/repo/all-status'); 
+        const config = getAuthHeaders();
+        if (!config) return; 
+
+        const res = await axios.get('http://localhost:5000/api/repo/all-status', config); 
         if (res.data.success) {
           setLocalRepos(res.data.repos);
         }
@@ -27,10 +34,17 @@ const Sidebar = ({ onIndexSuccess, onSelectRepo, indexedRepos, activeRepo, user,
     if (!url.trim()) return;
     setIsInputLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/repo/index-repo', { repoUrl: url });
+      const config = getAuthHeaders();
+      if (!config) {
+        alert("Please login again.");
+        return;
+      }
+
+      const res = await axios.post('http://localhost:5000/api/repo/index-repo', { repoUrl: url }, config);
+      
       if (res.data.success) {
         setUrl('');
-        onIndexSuccess(); // Refresh parent if needed
+        if (onIndexSuccess) onIndexSuccess(res.data, url); 
       }
     } catch (err) {
       alert("Failed to start indexing");
@@ -43,8 +57,8 @@ const Sidebar = ({ onIndexSuccess, onSelectRepo, indexedRepos, activeRepo, user,
     <div className="w-72 h-screen bg-[#020617] border-r border-white/5 flex flex-col text-slate-300">
       <div className="p-6">
         {/* Branding */}
-        <h1 className="text-xl font-black text-blue-200 flex items-center mb-8 ">
-          <div className="p-1.5 ">
+        <h1 className="text-xl font-black text-blue-200 flex items-center mb-8">
+          <div className="p-1.5">
             <Brain size={20} className="text-white" />
           </div>
           DevOnboard <span className="text-xl text-white">.ai</span>
@@ -123,9 +137,9 @@ const Sidebar = ({ onIndexSuccess, onSelectRepo, indexedRepos, activeRepo, user,
         </div>
       </div>
 
-      {/* 🟢 NEW: User Profile & Logout */}
+      {/* User Profile & Logout */}
       {user && (
-        <div className="p-4 ">
+        <div className="p-4">
           <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
             <div className="flex items-center gap-3 overflow-hidden">
               <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold shrink-0">

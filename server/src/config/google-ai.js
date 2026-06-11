@@ -12,7 +12,7 @@ export const generateEmbeddings = async (text) => {
         }
         throw new Error("Invalid embedding response from Google");
     } catch (error) {
-        console.error("❌ Embedding Error inside config:", error.message);
+        console.error("Embedding Error inside config:", error.message);
         throw error;
     }
 };

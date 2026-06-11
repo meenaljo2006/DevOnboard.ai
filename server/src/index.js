@@ -15,7 +15,7 @@ connectDB();
 
 const app = express();
 
-// 4. MIDDLEWARE (Order matters)
+// 4. MIDDLEWARE
 app.use(helmet()); 
 app.use(cors());   
 app.use(morgan('dev')); 
@@ -28,5 +28,5 @@ app.use('/api/auth', router);
 // 6. START SERVER
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`🚀 DevOnboard.ai Server running on http://localhost:${PORT}`);
+    console.log(`DevOnboard.ai Server running on http://localhost:${PORT}`);
 });
